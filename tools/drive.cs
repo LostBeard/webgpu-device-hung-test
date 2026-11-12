@@ -12,6 +12,8 @@ string profile = Path.Combine(Path.GetTempPath(), "wdh_" + Guid.NewGuid().ToStri
 string? exe = Environment.GetEnvironmentVariable("CHROME_EXE");
 
 using var pw = await Playwright.CreateAsync();
+try
+{
 foreach (var t in tests)
 {
     // a fresh browser per test: after a device loss the browser may refuse WebGPU for the rest of the session
@@ -23,14 +25,17 @@ foreach (var t in tests)
         Args = new[] { "--enable-unsafe-webgpu", "--ignore-gpu-blocklist", "--disable-gpu-shader-disk-cache" },
     });
     var page = ctx.Pages.Count > 0 ? ctx.Pages[0] : await ctx.NewPageAsync();
+    // The page can stop answering for 30+ s while Chrome compiles a large shader on a slow CPU (measured ~32 s on an
+    // i5-3330), so every page call allows 180 s.
+    page.SetDefaultTimeout(180000);
     await page.GotoAsync(url);
-    await page.WaitForSelectorAsync($"button[data-t={t}]", new() { Timeout = 30000 });
+    await page.WaitForSelectorAsync($"button[data-t={t}]");
     Console.WriteLine("GPU: " + (await page.InnerTextAsync("#gpu")).Replace("\n", " | "));
     await page.CheckAsync($"input[name=pp][value={pref}]");
     await page.ClickAsync($"button[data-t={t}]");
     var sw = System.Diagnostics.Stopwatch.StartNew();
     string st = "";
-    while (sw.Elapsed.TotalSeconds < 400)
+    while (sw.Elapsed.TotalSeconds < 900)
     {
         await Task.Delay(1000);
         st = await page.InnerTextAsync($"#st-{t}");
@@ -40,4 +45,8 @@ foreach (var t in tests)
     if (t == tests[^1]) Console.WriteLine("REPORT:\n" + await page.InputValueAsync("#report"));
     await ctx.CloseAsync();
 }
-try { Directory.Delete(profile, true); } catch { }
+}
+finally
+{
+    try { Directory.Delete(profile, true); } catch { }
+}
