@@ -46,6 +46,8 @@ a { color: var(--accent); }
 function-scope arrays per thread</b>, then any other dispatch in the same submit, then (after the GPU went idle) a later large kernel
 loses the device. There, 1652 ints never does it, 1653 always does, and a queue submit right after the large kernel prevents it.
 We do not know yet which GPUs are affected. Running this page and reporting the result helps answer that.</p>
+<p class="muted">Reported upstream: <a href="https://issues.chromium.org/issues/585125915">Chromium issue 585125915</a>.
+Workaround tracked in <a href="https://github.com/LostBeard/SpawnDev.ILGPU/issues/10">SpawnDev.ILGPU#10</a>.</p>
 
 <div class="warn"><b>Before you run the test:</b> on an affected GPU the screen may go black for a moment while Windows resets the
 display driver, and the browser may turn WebGPU off for this tab. Save your work first. Nothing is uploaded: the page only replays

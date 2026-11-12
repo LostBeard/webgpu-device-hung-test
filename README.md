@@ -2,6 +2,9 @@
 
 **Test your GPU: https://lostbeard.github.io/webgpu-device-hung-test/**
 
+Reported upstream: [Chromium issue 585125915](https://issues.chromium.org/issues/585125915). Workaround tracked in
+[SpawnDev.ILGPU#10](https://github.com/LostBeard/SpawnDev.ILGPU/issues/10).
+
 On an NVIDIA RTX 4070 (Windows 11, Chrome, WebGPU on the D3D12 backend), this sequence of plain WebGPU calls always loses the
 device with `DXGI_ERROR_DEVICE_HUNG`:
 
