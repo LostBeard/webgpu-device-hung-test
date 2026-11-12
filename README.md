@@ -23,7 +23,7 @@ the result.
 |---|---|---|---|
 | NVIDIA RTX 4070 (lovelace) | 596.21, 621.14 | Chrome 157 (.52, .78), D3D12 | **affected**: 1653 loses the device; 1652 and 1653 + submit pass |
 | NVIDIA RTX 2060 (turing) | 610.88 | Chrome 157 (.50, .78), D3D12 | not affected: control, test and fix pass on the page; the original recording (1656 ints) passes too |
-| AMD RX 590 (gcn-4) | 31.0.21925.1001 | Chrome 157 (.51), D3D12 and Vulkan | not affected (original recording, 1656 ints, and its variants) |
+| AMD RX 590 (gcn-4) | 31.0.21925.1001 | Chrome 157 (.51), D3D12 | not affected: control, test and fix pass on the page; the original recording (1656 ints) passes too |
 
 Please [open an issue](https://github.com/LostBeard/webgpu-device-hung-test/issues/new) with your result, affected or not:
 the page fills in the report for you. Passing GPUs narrow the problem down as much as failing ones.
