@@ -48,6 +48,9 @@ async function replayTrace(url, opt = {}) {
                     pending.delete(r.of);
                     let v;
                     try { v = await p; } catch (e) { if (r.ok) R.errors.push(r.i + ' resolved rejected: ' + String(e?.message || e).slice(0, 160)); continue; }
+                    // popErrorScope RESOLVES with a GPUError (it does not reject): an invalid shader or pipeline would otherwise
+                    // pass silently and its dispatches would be skipped, making a run look like a pass
+                    if (typeof GPUError !== 'undefined' && v instanceof GPUError) { R.errors.push(r.i + ' error scope: ' + String(v.message).split('\n')[0].slice(0, 200)); continue; }
                     if (r.ret && v && typeof v === 'object') {
                         objs.set(r.ret, v);
                         if (v instanceof GPUDevice) {

@@ -82,6 +82,8 @@ Reports from GPUs that pass are just as useful as from those that fail.</p>
 <thead><tr><th>GPU</th><th>Driver</th><th>Browser / backend</th><th>Result</th></tr></thead>
 <tbody>
 <tr><td>NVIDIA RTX 4070 (lovelace)</td><td>596.21, 621.14</td><td>Chrome 157 (.52, .78), D3D12</td><td><span class="bad">affected</span>: 1653 loses the device, 1652 and 1653 + submit pass (repeated; also at workgroup sizes 1 and 256)</td></tr>
+<tr><td>NVIDIA RTX 4070 (lovelace)</td><td>621.14</td><td>Chrome Canary 157.0.8079.0 and Edge 148, D3D12</td><td><span class="bad">affected</span>: 1653 loses the device, 1652 and 1653 + submit pass</td></tr>
+<tr><td>NVIDIA RTX 4070 (lovelace)</td><td>621.14</td><td>Firefox 159 (wgpu)</td><td><span class="ok">not affected</span>: all three pass with 0 WebGPU errors</td></tr>
 <tr><td>NVIDIA RTX 2060 (turing)</td><td>610.88</td><td>Chrome 157 (.50, .78), D3D12</td><td><span class="ok">not affected</span>: control, test and fix pass on this page; the original recording (1656 ints) passes too</td></tr>
 <tr><td>AMD RX 590 (gcn-4)</td><td>31.0.21925.1001</td><td>Chrome 157 (.51), D3D12</td><td><span class="ok">not affected</span>: control, test and fix pass on this page; the original recording (1656 ints) passes too</td></tr>
 <tr><td>NVIDIA GeForce 940MX (maxwell)</td><td>430.63 (26.21.14.3063)</td><td>Chrome 157 (.51), D3D12</td><td><span class="ok">not affected</span>: control, test and fix pass on this page</td></tr>
@@ -163,7 +165,9 @@ async function run(t) {
   catch (e) { R = { errors: ['replay failed: ' + e.message], lost: '', at: -1, of: 0 }; }
   clearInterval(timer);
   const i = R.adapter && R.adapter.info || {};
-  const deviceErrors = R.errors.filter(e => /requestDevice|unknown self|unknown object/.test(e));
+  // A run without a device loss must also be free of WebGPU errors: an invalid shader skips its dispatches and would look
+  // like a pass. After a device loss, later errors are consequences of the loss, so only device-creation errors count there.
+  const deviceErrors = R.lost ? R.errors.filter(e => /requestDevice|unknown self|unknown object/.test(e)) : R.errors;
   const r = { test: t.id, powerPreference: pref, lost: R.lost || '', at: R.at, of: R.of, seconds: +((performance.now() - started) / 1000).toFixed(1),
     errors: R.errors.length, firstErrors: R.errors.slice(0, 3), adapter: infoText(i), when: new Date().toISOString() };
   if (deviceErrors.length || (!R.lost && R.at < R.of - 2)) { r.valid = false; r.why = (deviceErrors[0] || R.errors[0] || 'the replay did not reach the end').slice(0, 160); }

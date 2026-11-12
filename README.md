@@ -22,6 +22,9 @@ the result.
 | GPU | Driver | Browser / backend | Result |
 |---|---|---|---|
 | NVIDIA RTX 4070 (lovelace) | 596.21, 621.14 | Chrome 157 (.52, .78), D3D12 | **affected**: 1653 loses the device; 1652 and 1653 + submit pass |
+| NVIDIA RTX 4070 (lovelace) | 621.14 | Chrome Canary 157.0.8079.0, D3D12 | **affected** (same as Chrome) |
+| NVIDIA RTX 4070 (lovelace) | 621.14 | Edge 148.0.3967.54 (Chromium 148), D3D12 | **affected**: 1653 loses the device (at record 854); 1652 and 1653 + submit pass |
+| NVIDIA RTX 4070 (lovelace) | 621.14 | Firefox 159 (its own WebGPU implementation, wgpu) | not affected: control, test and fix pass with 0 WebGPU errors; the large kernel's results earlier in the trace match the recording byte for byte |
 | NVIDIA RTX 2060 (turing) | 610.88 | Chrome 157 (.50, .78), D3D12 | not affected: control, test and fix pass on the page; the original recording (1656 ints) passes too |
 | AMD RX 590 (gcn-4) | 31.0.21925.1001 | Chrome 157 (.51), D3D12 | not affected: control, test and fix pass on the page; the original recording (1656 ints) passes too |
 | NVIDIA GeForce 940MX (maxwell) | 430.63 (26.21.14.3063) | Chrome 157 (.51), D3D12 | not affected: control, test and fix pass on the page |
@@ -58,6 +61,10 @@ session.
   WGSL compiled by SpawnDev.ILGPU from a VP9 encoder kernel); smaller candidates we wrote passed, possibly because the
   compiler removed their arrays.
 
+- **Browser.** On the same RTX 4070 and driver, every Chromium-based browser tried loses the device (Chrome, Chrome Canary,
+  Edge); Firefox, whose WebGPU implementation is separate (wgpu), runs all three tests without an error. Firefox ran on the
+  4070 (its processes hold contexts on that GPU during the run); its backend was not read back.
+
 Not known: why the 4070 and not the 2060, and which other GPUs are affected.
 
 ## Files
@@ -73,7 +80,8 @@ Not known: why the 4070 and not the 2060, and which other GPUs are affected.
 | `traces/original_recording.jsonl` | the original recording: a VP9 decode, then an encode, with the real decoder kernels (ParseKernel holds 1592 + 64 ints). Loses the device on the 4070 at record 828 |
 | `tracer.js` | the recorder that wrote the traces (wraps the WebGPU prototypes) |
 | `tools/build_traces.py` | builds the three test traces from the base; every edit is asserted |
-| `tools/drive.cs` | clicks the page's buttons in a fresh Chrome profile (`dotnet run tools/drive.cs -- <url> control,test,fix`) |
+| `tools/drive.cs` | clicks the page's buttons in a fresh Chrome profile (`dotnet run tools/drive.cs -- <url> control,test,fix`); `CHROME_EXE` picks another Chromium browser (Canary, Edge), `CHROME_ARGS` adds flags |
+| `tools/ffdrive.js` | the same for the installed Firefox (`npm install puppeteer-core`, then `node tools/ffdrive.js <url> control,test,fix`); also prints the replay's error count and readback checks |
 
 All traces are "portable": `enable f16;` removed (no shader uses f16) and the device is requested with no optional
 features and only `maxStorageBuffersPerShaderStage: 10`, so GPUs without `shader-f16` can run them.
