@@ -23,7 +23,9 @@ foreach (var t in tests)
         Channel = exe is null ? "chrome" : null,
         ExecutablePath = exe,
         // --enable-webgpu-developer-features: adapter.info then carries the backend and driver version for the report
-        Args = new[] { "--enable-unsafe-webgpu", "--ignore-gpu-blocklist", "--disable-gpu-shader-disk-cache", "--enable-webgpu-developer-features" },
+        // CHROME_ARGS adds flags, space separated (for example --use-webgpu-adapter=d3d11)
+        Args = new[] { "--enable-unsafe-webgpu", "--ignore-gpu-blocklist", "--disable-gpu-shader-disk-cache", "--enable-webgpu-developer-features" }
+            .Concat((Environment.GetEnvironmentVariable("CHROME_ARGS") ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)).ToArray(),
     });
     var page = ctx.Pages.Count > 0 ? ctx.Pages[0] : await ctx.NewPageAsync();
     // The page can stop answering for 30+ s while Chrome compiles a large shader on a slow CPU (measured ~32 s on an
