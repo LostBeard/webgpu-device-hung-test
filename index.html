@@ -106,9 +106,9 @@ const store = {
 let results = store.get();
 let adapters = {};
 let uaFull = '';
-(async () => { try { const h = await navigator.userAgentData.getHighEntropyValues(['fullVersionList', 'platformVersion', 'architecture']);
+(async () => { try { const h = await navigator.userAgentData.getHighEntropyValues(['fullVersionList', 'platformVersion', 'architecture', 'bitness']);
   uaFull = (h.fullVersionList || []).filter(b => !/Not.?A.?Brand/i.test(b.brand)).map(b => b.brand + ' ' + b.version).join(', ') +
-    `; ${navigator.userAgentData.platform} ${h.platformVersion} ${h.architecture || ''}`; renderReport(); } catch { } })();
+    `; ${navigator.userAgentData.platform} ${h.platformVersion} ${h.architecture || ''}${h.bitness ? ' ' + h.bitness + '-bit' : ''}`; renderReport(); } catch { } })();
 const $ = id => document.getElementById(id);
 const pp = () => document.querySelector('input[name=pp]:checked').value;
 const infoText = i => i ? [i.vendor, i.architecture, i.device, i.description].filter(Boolean).join(' / ') || '(no adapter info)' : '(none)';
